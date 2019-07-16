@@ -1,5 +1,5 @@
 # Heroes-API
-Nodejs REST API example using Hapi and Mongoose
+Nodejs REST API exemple using Hapi and Mongoose
 
 # Start
 Clone this repo then
@@ -10,7 +10,7 @@ Install depencies;
 ```
 npm i
 ```
-Create a .env file following this example;
+Create a .env file following this exemple;
 ```
 APP_HOST=localhost # Application 
 APP_PORT=5000 # Application 
