@@ -82,7 +82,7 @@ Server.route({
     path: '/heroes/{id}',
     handler: async (request, send) => {
         if (!Mongoose.Types.ObjectId.isValid(request.params.id)) {
-            return send.response({ error: 'ValidationError', message: 'Invalid id'}).code(400);
+            return send.response({ error: 'ValidationError', message: 'Invalid id' }).code(400);
         }
 
         try {
@@ -97,7 +97,7 @@ Server.route({
 })
 
 Server.route({
-    method: 'PUT',
+    method: 'PATCH',
     path: '/heroes/{id}',
     handler: async (request, send) => {
         let { payload, params } = request;
@@ -124,13 +124,40 @@ Server.route({
 })
 
 Server.route({
+    method: 'PUT',
+    path: '/heroes/{id}',
+    handler: async (request, send) => {
+        let { payload, params } = request;
+
+        if (!Mongoose.Types.ObjectId.isValid(params.id)) {
+            return send.response({ error: 'ValidationError', message: 'Invalid id' }).code(400);
+        }
+
+        payload = checkHero(payload);
+
+        if (payload.isJoi) {
+            return send.response(payload).code(400);
+        }
+
+        try {
+            let result = await HeroesModel.findOneAndReplace(params.id, payload, { new: true }).exec();
+            return send.response(result);
+        } catch (error) {
+            console.log(error);
+            return send.response({ error }).code(500);
+        }
+
+    }
+})
+
+Server.route({
     method: 'DELETE',
     path: '/heroes/{id}',
     handler: async (request, send) => {
         if (!Mongoose.Types.ObjectId.isValid(request.params.id)) {
             return send.response({ error: 'ValidationError', message: 'Invalid id' }).code(400);
         }
-        
+
         try {
             let result = await HeroesModel.findByIdAndDelete(request.params.id).exec();
             return send.response(result);
@@ -168,6 +195,7 @@ Server.route({
     }
 })
 
+//construct file object
 const setAvatar = avatar => ({ name: avatar.hapi.filename, mime: avatar.hapi.headers['content-type'], binary: avatar._data.toString('base64') })
 
 const checkHero = hero => {
@@ -180,6 +208,7 @@ const checkHero = hero => {
         hero = { ...hero, avatar: setAvatar(hero.avatar) }
     }
 
+    //field validation
     let schema = Joi.object().keys({
         name: Joi.string(),
         vitality: Joi.number().integer().min(0).max(100),
@@ -199,7 +228,7 @@ const checkHero = hero => {
 
     const { error } = Joi.validate(hero, schema);
     if (error) {
-        return {error: error.name, message: error.message, isJoi: error.isJoi};
+        return { error: error.name, message: error.message, isJoi: error.isJoi };
     }
 
     return hero;
