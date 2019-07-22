@@ -3,10 +3,10 @@ const Hapi = require('hapi');
 const Mongoose = require('mongoose');
 const Joi = require('joi');
 
-//connection
 let host = process.env.APP_HOST || 'localhost';
 let port = process.env.APP_PORT || 5000;
 
+//connection
 const Server = new Hapi.Server(
     {
         host,
@@ -14,7 +14,9 @@ const Server = new Hapi.Server(
     }
 );
 
+//setting mongo 
 Mongoose.connect(`mongodb://${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 27017}/api`, { useNewUrlParser: true });
+Mongoose.set('useFindAndModify', false);
 
 const HeroesModel = Mongoose.model('heroes', {
     name: String,
