@@ -1,7 +1,7 @@
 require('dotenv').config();
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
 const Mongoose = require('mongoose');
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 
 let host = process.env.APP_HOST || 'localhost';
 let port = process.env.APP_PORT || 5000;
@@ -46,7 +46,7 @@ Server.route({
     },
     handler: async (request, send) => {
         let { payload } = request;
-        payload = checkHero(payload);
+        payload = payloadValidation(payload);
 
         if (payload.isJoi) {
             return send.response(payload).code(400);
@@ -108,7 +108,7 @@ Server.route({
             return send.response({ error: 'ValidationError', message: 'Invalid id' }).code(400);
         }
 
-        payload = checkHero(payload);
+        payload = payloadValidation(payload);
 
         if (payload.isJoi) {
             return send.response(payload).code(400);
@@ -135,7 +135,7 @@ Server.route({
             return send.response({ error: 'ValidationError', message: 'Invalid id' }).code(400);
         }
 
-        payload = checkHero(payload);
+        payload = payloadValidation(payload);
 
         if (payload.isJoi) {
             return send.response(payload).code(400);
@@ -188,7 +188,7 @@ Server.route({
                 return send.response(buffer).type(result.type).bytes(buffer.length);
             }
 
-            return send.response(result);
+            return send.response().code(204);
         } catch (error) {
             console.log(error);
             return send.response({ error }).code(500);
@@ -198,16 +198,16 @@ Server.route({
 })
 
 //construct file object
-const setAvatar = avatar => ({ name: avatar.hapi.filename, mime: avatar.hapi.headers['content-type'], binary: avatar._data.toString('base64') })
+const buildAvatar = avatar => ({ name: avatar.hapi.filename, mime: avatar.hapi.headers['content-type'], binary: avatar._data.toString('base64') })
 
-const checkHero = hero => {
+const payloadValidation = payload => {
 
-    if (hero.abilities) {
-        hero = { ...hero, abilities: hero.abilities.map(JSON.parse) }
+    if (payload.abilities) {
+        payload = { ...payload, abilities: payload.abilities.map(JSON.parse) }
     }
 
-    if (hero.avatar) {
-        hero = { ...hero, avatar: setAvatar(hero.avatar) }
+    if (payload.avatar) {
+        payload = { ...payload, avatar: buildAvatar(payload.avatar) }
     }
 
     //field validation
@@ -228,12 +228,12 @@ const checkHero = hero => {
         })
     })
 
-    const { error } = Joi.validate(hero, schema);
+    const { error } = Joi.validate(payload, schema);
     if (error) {
         return { error: error.name, message: error.message, isJoi: error.isJoi };
     }
 
-    return hero;
+    return payload;
 }
 
 
@@ -242,9 +242,9 @@ process.on('unhandledRejection', (error) => {
     process.exit(1);
 });
 
-const init = async () => {
+const start = async () => {
     await Server.start();
     console.log(`Server is running on ${host}:${port}`);
 };
 
-init();
+start();
