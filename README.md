@@ -1,5 +1,5 @@
 # Heroes-API
-Nodejs REST API exemple using Hapi and Mongoose
+Simple Nodejs REST API exemple using Hapi and Mongoose
 
 # Start
 Clone this repo then
