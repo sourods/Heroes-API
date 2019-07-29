@@ -66,10 +66,15 @@ Server.route({
 
 Server.route({
     method: 'GET',
-    path: '/heroes',
+    path: '/heroes/{limit}/{lastId?}',
     handler: async (request, send) => {
+        let { params } = request;
+
+        let limit = parseInt(params.limit);
+        let lastId = Mongoose.Types.ObjectId.isValid(params.lastId) ? params.lastId : null;
+
         try {
-            let result = await HeroesModel.find().exec();
+            let result = await HeroesModel.find(lastId ? {'_id':{'$gt':lastId}} : {}).limit(limit).exec();
             return send.response(result);
         } catch (error) {
             console.log(error);
@@ -81,7 +86,7 @@ Server.route({
 
 Server.route({
     method: 'GET',
-    path: '/heroes/{id}',
+    path: '/hero/{id}',
     handler: async (request, send) => {
         if (!Mongoose.Types.ObjectId.isValid(request.params.id)) {
             return send.response({ error: 'ValidationError', message: 'Invalid id' }).code(400);
@@ -100,7 +105,7 @@ Server.route({
 
 Server.route({
     method: 'PATCH',
-    path: '/heroes/{id}',
+    path: '/hero/{id}',
     handler: async (request, send) => {
         let { payload, params } = request;
 
@@ -127,7 +132,7 @@ Server.route({
 
 Server.route({
     method: 'PUT',
-    path: '/heroes/{id}',
+    path: '/hero/{id}',
     handler: async (request, send) => {
         let { payload, params } = request;
 
@@ -154,7 +159,7 @@ Server.route({
 
 Server.route({
     method: 'DELETE',
-    path: '/heroes/{id}',
+    path: '/hero/{id}',
     handler: async (request, send) => {
         if (!Mongoose.Types.ObjectId.isValid(request.params.id)) {
             return send.response({ error: 'ValidationError', message: 'Invalid id' }).code(400);
@@ -174,7 +179,7 @@ Server.route({
 
 Server.route({
     method: 'GET',
-    path: '/heroes/avatar/{id}',
+    path: '/hero/avatar/{id}',
     handler: async (request, send) => {
         if (!Mongoose.Types.ObjectId.isValid(request.params.id)) {
             return send.response({ error: 'ValidationError', message: 'Invalid id' }).code(400);
